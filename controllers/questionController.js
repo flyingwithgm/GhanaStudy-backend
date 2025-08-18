@@ -1,5 +1,6 @@
 const Question = require('../models/Question');
 const Answer = require('../models/Answer');
+const { logger } = require('../utils/logger');
 
 const getQuestions = async (req, res) => {
   try {
@@ -13,6 +14,7 @@ const getQuestions = async (req, res) => {
        questions
     });
   } catch (error) {
+    logger.error('Get questions error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -36,6 +38,7 @@ const getQuestion = async (req, res) => {
        question
     });
   } catch (error) {
+    logger.error('Get question error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -52,6 +55,7 @@ const createQuestion = async (req, res) => {
        question
     });
   } catch (error) {
+    logger.error('Create question error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -80,6 +84,7 @@ const updateQuestion = async (req, res) => {
        updatedQuestion
     });
   } catch (error) {
+    logger.error('Update question error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -108,6 +113,7 @@ const deleteQuestion = async (req, res) => {
       message: 'Question removed' 
     });
   } catch (error) {
+    logger.error('Delete question error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -140,6 +146,7 @@ const likeQuestion = async (req, res) => {
       }
     });
   } catch (error) {
+    logger.error('Like question error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -171,6 +178,7 @@ const createAnswer = async (req, res) => {
        answer
     });
   } catch (error) {
+    logger.error('Create answer error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -179,6 +187,11 @@ const createAnswer = async (req, res) => {
 };
 
 module.exports = {
-  getQuestions, getQuestion, createQuestion,
-  updateQuestion, deleteQuestion, likeQuestion, createAnswer
+  getQuestions, 
+  getQuestion, 
+  createQuestion,
+  updateQuestion, 
+  deleteQuestion, 
+  likeQuestion, 
+  createAnswer
 };
