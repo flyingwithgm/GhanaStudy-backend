@@ -1,5 +1,6 @@
 const StudyGroup = require('../models/StudyGroup');
 const GroupMessage = require('../models/GroupMessage');
+const { logger } = require('../utils/logger');
 
 const getGroups = async (req, res) => {
   try {
@@ -12,6 +13,7 @@ const getGroups = async (req, res) => {
        groups
     });
   } catch (error) {
+    logger.error('Get groups error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -32,6 +34,7 @@ const createGroup = async (req, res) => {
        group
     });
   } catch (error) {
+    logger.error('Create group error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -55,6 +58,7 @@ const getGroup = async (req, res) => {
        group
     });
   } catch (error) {
+    logger.error('Get group error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -87,6 +91,7 @@ const joinGroup = async (req, res) => {
        group
     });
   } catch (error) {
+    logger.error('Join group error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -99,6 +104,7 @@ const getGroupMessages = async (req, res) => {
     const { groupId } = req.params;
     const { limit = 50, before } = req.query;
     
+    // Check if user is member of the group
     const group = await StudyGroup.findById(groupId);
     if (!group) {
       return res.status(404).json({ 
@@ -107,22 +113,39 @@ const getGroupMessages = async (req, res) => {
       });
     }
     
+    const isMember = group.members.find(
+      member => member.user.toString() === req.user._id.toString()
+    );
+    
+    if (!isMember && group.privacy === 'private') {
+      return res.status(403).json({ 
+        success: false,
+        message: 'Access denied to private group' 
+      });
+    }
+    
+    // Build query
     let query = { group: groupId };
     if (before) {
       query.timestamp = { $lt: new Date(before) };
     }
     
+    // Get messages
     const messages = await GroupMessage.find(query)
       .sort({ timestamp: -1 })
       .limit(parseInt(limit))
       .populate('user', 'name avatar');
     
+    // Reverse messages to show in chronological order
+    const reversedMessages = messages ? messages.reverse() : [];
+    
     res.status(200).json({
       success: true,
-      count: messages.length,
-       messages.reverse()
+      count: reversedMessages.length,
+       reversedMessages
     });
   } catch (error) {
+    logger.error('Get group messages error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -142,6 +165,7 @@ const sendGroupMessage = async (req, res) => {
       });
     }
     
+    // Check if user is member of the group
     const group = await StudyGroup.findById(groupId);
     if (!group) {
       return res.status(404).json({ 
@@ -161,6 +185,7 @@ const sendGroupMessage = async (req, res) => {
       });
     }
     
+    // Create message
     const message = await GroupMessage.create({
       group: groupId,
       user: req.user._id,
@@ -168,6 +193,7 @@ const sendGroupMessage = async (req, res) => {
       content: content.trim()
     });
     
+    // Populate user info
     await message.populate('user', 'name avatar');
     
     res.status(201).json({
@@ -175,6 +201,7 @@ const sendGroupMessage = async (req, res) => {
        message
     });
   } catch (error) {
+    logger.error('Send group message error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -187,6 +214,6 @@ module.exports = {
   createGroup, 
   getGroup, 
   joinGroup,
-  getGroupMessages,
+  getGroupMessages,  
   sendGroupMessage
 };
