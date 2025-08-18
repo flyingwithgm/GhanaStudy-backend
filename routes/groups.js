@@ -6,7 +6,7 @@ const {
   createGroup, 
   getGroup, 
   joinGroup,
-  getGroupMessages,
+  getGroupMessages,  
   sendGroupMessage
 } = require('../controllers/groupController');
 
@@ -20,6 +20,7 @@ router.route('/:id')
 router.route('/:id/join')
   .post(protect, joinGroup);
 
+// Add message routes
 router.route('/:id/messages')
   .get(protect, getGroupMessages)
   .post(protect, sendGroupMessage);
