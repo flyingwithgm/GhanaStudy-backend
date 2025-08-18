@@ -11,7 +11,7 @@ const getQuestions = async (req, res) => {
     res.status(200).json({
       success: true,
       count: questions.length,
-       questions
+      data: questions
     });
   } catch (error) {
     logger.error('Get questions error:', error);
@@ -35,7 +35,7 @@ const getQuestion = async (req, res) => {
     }
     res.status(200).json({
       success: true,
-       question
+      data: question
     });
   } catch (error) {
     logger.error('Get question error:', error);
@@ -52,7 +52,7 @@ const createQuestion = async (req, res) => {
     const question = await Question.create({ user: req.user._id, subject, content });
     res.status(201).json({
       success: true,
-       question
+      data: question
     });
   } catch (error) {
     logger.error('Create question error:', error);
@@ -81,7 +81,7 @@ const updateQuestion = async (req, res) => {
     const updatedQuestion = await Question.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.status(200).json({
       success: true,
-       updatedQuestion
+      data: updatedQuestion
     });
   } catch (error) {
     logger.error('Update question error:', error);
@@ -140,7 +140,7 @@ const likeQuestion = async (req, res) => {
     await question.save();
     res.status(200).json({
       success: true,
-       {
+      data: {
         likes: question.likes.length,
         isLiked: question.likes.includes(req.user._id)
       }
@@ -175,7 +175,7 @@ const createAnswer = async (req, res) => {
     await question.save();
     res.status(201).json({
       success: true,
-       answer
+      data: answer
     });
   } catch (error) {
     logger.error('Create answer error:', error);
