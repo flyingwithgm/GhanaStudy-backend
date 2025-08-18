@@ -9,6 +9,7 @@ const generateToken = (id) => {
 
 const register = async (req, res) => {
   const { name, email, password, school, formLevel } = req.body;
+  
   try {
     const userExists = await User.findOne({ email });
     if (userExists) {
@@ -20,14 +21,19 @@ const register = async (req, res) => {
     
     const user = await User.create({ name, email, password, school, formLevel });
     if (user) {
+      // Send welcome email
       if (process.env.EMAIL_USER) {
-        await sendWelcomeEmail(user.email, user.name);
-        logger.info(`📧 Welcome email sent to ${user.email}`);
+        try {
+          await sendWelcomeEmail(user.email, user.name);
+          logger.info(`📧 Welcome email sent to ${user.email}`);
+        } catch (emailError) {
+          logger.error(`Failed to send welcome email to ${user.email}:`, emailError);
+        }
       }
       
       res.status(201).json({
         success: true,
-         {
+        data: {
           _id: user._id, 
           name: user.name, 
           email: user.email,
@@ -43,6 +49,7 @@ const register = async (req, res) => {
       });
     }
   } catch (error) {
+    logger.error('User registration failed:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -52,6 +59,7 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+  
   try {
     const user = await User.findOne({ email });
     if (user && (await user.comparePassword(password))) {
@@ -73,6 +81,7 @@ const login = async (req, res) => {
       });
     }
   } catch (error) {
+    logger.error('Login error:', error);
     res.status(500).json({ 
       success: false,
       message: error.message 
@@ -81,10 +90,18 @@ const login = async (req, res) => {
 };
 
 const getMe = async (req, res) => {
-  res.status(200).json({
-    success: true,
-     req.user
-  });
+  try {
+    res.status(200).json({
+      success: true,
+      data: req.user
+    });
+  } catch (error) {
+    logger.error('Get me error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
+  }
 };
 
 module.exports = { register, login, getMe };
